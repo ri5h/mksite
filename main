@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Usage: mksite arderio
+
+# Step 1: Get optional description
+read -p "Provide Project description? [y/n]" -n 1 -r
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    read -p "Specify a name for the project? [a-zA-Z0-9]" -r siteDescription
+fi
+
+# Step 2: Create entry in hosts file
+echo "Adding domain in hosts file"
+ETC_HOSTS=/etc/hosts
+IP="127.0.0.1"
+HOSTNAME=$1
+HOSTS_LINE="$IP\t$HOSTNAME"
+if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+    then
+        echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
+    else
+        echo "Adding $HOSTNAME to your $ETC_HOSTS";
+        sudo -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+
+        if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+            then
+                echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
+            else
+                echo "Failed to Add $HOSTNAME, Try again!";
+        fi
+fi
+
+#Step 3: create a vhosts file
+VHOST_CONFIG="<VirtualHost *:80>\n\tDocumentRoot '/Users/rishirajpurohit/Sites/$1'\n\tServerName $1.loc\n\tErrorLog '/private/var/log/apache2/$1.loc.error_log'\n\tCustomLog '/private/var/log/apache2/$1.loc-access_log' common\n\t\t<Directory '/Users/rishirajpurohit/Sites/$1'>\n\t\tAllowOverride All\n\t\tOrder allow,deny\n\t\tallow from all\n\t</Directory>\n</VirtualHost>'
+
+
